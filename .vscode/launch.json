@@ -1,45 +1,34 @@
-// replace all instances of `ModTemplate` with the name of the mod
+// replace all instances of `MouseOverConstruction` with the name of the mod
 {
   "version": "0.2.0",
   "configurations": [
     {
       "type": "factoriomod",
       "request": "launch",
-      "name": "Debug",
-      "factorioPath": "${env:factorioTestbench1}",
+      "name": "Debug (src)",
+      "factorioPath": "${env:factorioSourceRelease}",
       "hookMode": "debug",
-      "hookControl": ["ModTemplate", "Sandbox"],
+      "hookControl": ["MouseOverConstruction", "Sandbox"],
       "factorioArgs": ["--load-scenario", "EditorExtensions/testing"]
     },
     {
       "type": "factoriomod",
       "request": "launch",
-      "name": "Debug (data)",
-      "factorioPath": "${env:factorioTestbench1}",
+      "name": "Debug (src) (data)",
+      "factorioPath": "${env:factorioSourceRelease}",
       "hookMode": "debug",
-      "hookControl": ["ModTemplate", "Sandbox"],
+      "hookControl": ["MouseOverConstruction", "Sandbox"],
       "hookData": true,
       "hookSettings": true,
       "factorioArgs": ["--load-scenario", "EditorExtensions/testing"]
     },
     {
-      // this configuration is only useful if you have factorio source access - otherwise just delete it
       "type": "factoriomod",
       "request": "launch",
-      "name": "Debug (src)",
+      "name": "Profile (src)",
       "factorioPath": "${env:factorioSourceRelease}",
-      "hookMode": "debug",
-      "hookControl": ["ModTemplate", "Sandbox"],
-      "hookData": true,
-      "hookSettings": true
-    },
-    {
-      "type": "factoriomod",
-      "request": "launch",
-      "name": "Profile",
-      "factorioPath": "${env:factorioTestbench1}",
       "hookMode": "profile",
-      "hookControl": ["ModTemplate", "Sandbox"]
+      "hookControl": ["MouseOverConstruction", "Sandbox"]
     }
   ]
 }
