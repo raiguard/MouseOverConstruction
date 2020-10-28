@@ -21,7 +21,6 @@ end
 function mouseover.upgrade(player, entity, upgrade_prototype)
   local inventory = player.get_main_inventory()
   local use_item = get_first_item(inventory, upgrade_prototype)
-
   if use_item then
     local upgraded_entity = player.surface.create_entity{
       name = upgrade_prototype.name,
@@ -38,6 +37,17 @@ function mouseover.upgrade(player, entity, upgrade_prototype)
         position = upgraded_entity.position
       }
     end
+  end
+end
+
+function mouseover.deconstruct(player, entity)
+  local name = entity.name
+  local position = entity.position
+  if player.mine_entity(entity) then
+    player.play_sound{
+      path = "entity-mined/"..name,
+      position = position
+    }
   end
 end
 

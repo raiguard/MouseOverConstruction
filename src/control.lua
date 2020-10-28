@@ -56,6 +56,9 @@ event.on_selected_entity_changed(function(e)
           if upgrade then
             mouseover.upgrade(player, selected, upgrade)
           end
+        -- deconstruct to-be-deconstructed entities
+        elseif selected.to_be_deconstructed() then
+          mouseover.deconstruct(player, selected)
         end
       end
     end
