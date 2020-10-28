@@ -96,10 +96,12 @@ event.register("moc-toggle", function(e)
   local player = game.get_player(e.player_index)
   local player_table = global.players[e.player_index]
   player_data.toggle_mouseover(player, player_table)
-  player.create_local_flying_text{
-    text = {"moc-message."..(player_table.flags.mouseover_enabled and "enabled" or "disabled").."-moc"},
-    create_at_cursor = true
-  }
+  -- when 1.1 comes out
+  -- player.create_local_flying_text{
+  --   text = {"moc-message."..(player_table.flags.mouseover_enabled and "enabled" or "disabled").."-moc"},
+  --   create_at_cursor = true
+  -- }
+  player.print{"moc-message."..(player_table.flags.mouseover_enabled and "enabled" or "disabled").."-moc"}
 end)
 
 -- ENTITY

@@ -6,6 +6,6 @@
   "contact": "Discord: Raiguard#7402",
   "homepage": "https://github.com/raiguard/Factorio-MouseOverConstruction",
   "description": "Revive ghosts, upgrade, and deconstruct with a simple mouse-over.",
-  "factorio_version": "1.1",
-  "dependencies": ["base >= 1.1.0", "flib >= 0.5.0"]
+  "factorio_version": "1.0",
+  "dependencies": ["base >= 1.0.0", "flib >= 0.5.0"]
 }
