@@ -1,6 +1,8 @@
 local event = require("__flib__.event")
 local migration = require("__flib__.migration")
 
+local constants = require("constants")
+
 local global_data = require("scripts.global-data")
 local mouseover = require("scripts.mouseover")
 local player_data = require("scripts.player-data")
@@ -15,6 +17,9 @@ event.on_init(function()
 
   for i in pairs(game.players) do
     player_data.init(i)
+    local player = game.get_player(i)
+    local player_table = global.players[i]
+    player_data.update_settings(player, player_table)
   end
 end)
 
@@ -47,17 +52,18 @@ event.on_selected_entity_changed(function(e)
     if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
       local selected = player.selected
       if selected then
+        local settings = player_table.settings
         -- revive ghosts
-        if selected.type == "entity-ghost" then
+        if settings.enable_construction and selected.type == "entity-ghost" then
           mouseover.construct(player, selected)
         -- upgrade to-be-upgraded from inventory
-        elseif selected.to_be_upgraded() then
+        elseif settings.enable_upgrading and selected.to_be_upgraded() then
           local upgrade = selected.get_upgrade_target()
           if upgrade then
             mouseover.upgrade(player, selected, upgrade)
           end
         -- deconstruct to-be-deconstructed entities
-        elseif selected.to_be_deconstructed() then
+        elseif settings.enable_deconstruction and selected.to_be_deconstructed() then
           mouseover.deconstruct(player, selected)
         end
       end
@@ -69,6 +75,9 @@ end)
 
 event.on_player_created(function(e)
   player_data.init(e.player_index)
+  local player = game.get_player(e.player_index)
+  local player_table = global.players[e.player_index]
+  player_data.update_settings(player, player_table)
 end)
 
 event.on_player_removed(function(e)
@@ -82,5 +91,15 @@ event.on_lua_shortcut(function(e)
     local player = game.get_player(e.player_index)
     local player_table = global.players[e.player_index]
     player_data.toggle_mouseover(player, player_table)
+  end
+end)
+
+-- SETTINGS
+
+event.on_runtime_mod_setting_changed(function(e)
+  if constants.setting_names[e.setting] then
+    local player = game.get_player(e.player_index)
+    local player_table = global.players[e.player_index]
+    player_data.update_settings(player, player_table)
   end
 end)
