@@ -2,14 +2,8 @@ local event = require("__flib__.event")
 local migration = require("__flib__.migration")
 
 local global_data = require("scripts.global-data")
+local mouseover = require("scripts.mouseover")
 local player_data = require("scripts.player-data")
-
-local function toggle_mouseover(player_index)
-  local player = game.get_player(player_index)
-  local player_table = global.players[player_index]
-  player_table.flags.mouseover_enabled = not player_table.flags.mouseover_enabled
-  player.set_shortcut_toggled("moc-toggle", player_table.flags.mouseover_enabled)
-end
 
 -- -----------------------------------------------------------------------------
 -- EVENT HANDLERS
@@ -33,9 +27,9 @@ end)
 -- CUSTOM INPUT
 
 event.register("moc-toggle", function(e)
-  toggle_mouseover(e.player_index)
   local player = game.get_player(e.player_index)
   local player_table = global.players[e.player_index]
+  player_data.toggle_mouseover(player, player_table)
   player.create_local_flying_text{
     text = {"moc-message."..(player_table.flags.mouseover_enabled and "enabled" or "disabled").."-moc"},
     create_at_cursor = true
@@ -45,7 +39,17 @@ end)
 -- ENTITY
 
 event.on_selected_entity_changed(function(e)
-
+  local player_table = global.players[e.player_index]
+  if player_table.flags.mouseover_enabled then
+    local player = game.get_player(e.player_index)
+    local cursor_stack = player.cursor_stack
+    if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
+      local selected = player.selected
+      if selected and selected.type == "entity-ghost" then
+        mouseover.construct(player, selected)
+      end
+    end
+  end
 end)
 
 -- PLAYER
@@ -62,6 +66,8 @@ end)
 
 event.on_lua_shortcut(function(e)
   if e.prototype_name == "moc-toggle" then
-    toggle_mouseover(e.player_index)
+    local player = game.get_player(e.player_index)
+    local player_table = global.players[e.player_index]
+    player_data.toggle_mouseover(player, player_table)
   end
 end)

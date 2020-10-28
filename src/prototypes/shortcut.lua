@@ -31,6 +31,7 @@ data:extend{
       flags = {"icon"}
     },
     action = "lua",
-    toggleable = true
+    toggleable = true,
+    associated_control_input = "moc-toggle"
   }
 }
