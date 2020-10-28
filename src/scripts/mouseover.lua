@@ -43,7 +43,7 @@ end
 function mouseover.deconstruct(player, entity)
   local name = entity.name
   local position = entity.position
-  if player.mine_entity(entity) then
+  if player.mine_entity(entity) and game.is_valid_sound_path("entity-mined/"..name) then
     player.play_sound{
       path = "entity-mined/"..name,
       position = position

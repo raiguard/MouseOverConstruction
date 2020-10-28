@@ -3,12 +3,16 @@ local migration = require("__flib__.migration")
 
 local constants = require("constants")
 
+local deconstruction = require("scripts.deconstruction")
 local global_data = require("scripts.global-data")
 local mouseover = require("scripts.mouseover")
+local on_tick = require("scripts.on-tick")
 local player_data = require("scripts.player-data")
 
 -- -----------------------------------------------------------------------------
 -- EVENT HANDLERS
+-- `on_tick` handler is located and registered in `scripts.on-tick`
+-- all other event handlers are here
 
 -- BOOTSTRAP
 
@@ -21,6 +25,10 @@ event.on_init(function()
     local player_table = global.players[i]
     player_data.update_settings(player, player_table)
   end
+end)
+
+event.on_load(function()
+  on_tick.register()
 end)
 
 event.on_configuration_changed(function(e)
@@ -46,14 +54,21 @@ end)
 -- ENTITY
 
 event.on_selected_entity_changed(function(e)
+  local player = game.get_player(e.player_index)
   local player_table = global.players[e.player_index]
+  -- cancel deconstruction
+  if player_table.flags.deconstructing then
+    deconstruction.cancel(player, player_table)
+  end
+  -- check setting
   if player_table.flags.mouseover_enabled then
-    local player = game.get_player(e.player_index)
     local cursor_stack = player.cursor_stack
     -- if the cursor stack exists, but is empty
     if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
+      -- if the player has something selected
       local selected = player.selected
       if selected then
+        -- if the player is able to build / upgrade / deconstruct
         local settings = player_table.settings
         -- revive ghosts
         if settings.enable_construction and selected.type == "entity-ghost" then
@@ -66,7 +81,9 @@ event.on_selected_entity_changed(function(e)
           end
         -- deconstruct to-be-deconstructed entities
         elseif settings.enable_deconstruction and selected.to_be_deconstructed() then
-          mouseover.deconstruct(player, selected)
+          -- start deconstruction operation
+          deconstruction.start(player, player_table, selected)
+          on_tick.register()
         end
       end
     end
