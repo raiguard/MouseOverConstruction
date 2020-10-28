@@ -25,7 +25,9 @@ end)
 
 event.on_configuration_changed(function(e)
   if migration.on_config_changed(e, {}) then
-
+    for i, player_table in pairs(global.players) do
+      player_data.update_settings(game.get_player(i), player_table)
+    end
   end
 end)
 
