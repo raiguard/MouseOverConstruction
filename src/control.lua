@@ -10,6 +10,57 @@ local on_tick = require("scripts.on-tick")
 local player_data = require("scripts.player-data")
 
 -- -----------------------------------------------------------------------------
+-- COMMON FUNCTIONS
+
+local function check_selected(player, player_table)
+  -- check setting
+  if player_table.flags.mouseover_enabled then
+    local cursor_stack = player.cursor_stack
+    -- if the cursor stack exists, but is empty
+    if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
+      -- if the player has something selected
+      local selected = player.selected
+      if selected then
+        -- check reachability
+        if player.can_reach_entity(selected) then
+          local settings = player_table.settings
+          -- revive ghosts
+          if settings.enable_construction and selected.type == "entity-ghost" then
+            -- extra checks
+            if
+              player.can_place_entity{
+                name = selected.ghost_name,
+                position = selected.position,
+                direction = selected.direction
+              }
+            then
+              mouseover.construct(player, selected)
+            else
+              -- recheck when the player moves
+              player_table.flags.recheck_on_move = true
+            end
+          -- upgrade to-be-upgraded from inventory
+          elseif settings.enable_upgrading and selected.to_be_upgraded() then
+            local upgrade = selected.get_upgrade_target()
+            if upgrade then
+              mouseover.upgrade(player, selected, upgrade)
+            end
+          -- deconstruct to-be-deconstructed entities
+          elseif settings.enable_deconstruction and selected.to_be_deconstructed() then
+            -- start deconstruction operation
+            deconstruction.start(player, player_table, selected)
+            on_tick.register()
+          end
+        else
+          -- recheck when the player moves
+          player_table.flags.recheck_on_move = true
+        end
+      end
+    end
+  end
+end
+
+-- -----------------------------------------------------------------------------
 -- EVENT HANDLERS
 -- `on_tick` handler is located and registered in `scripts.on-tick`
 -- all other event handlers are here
@@ -56,38 +107,13 @@ end)
 event.on_selected_entity_changed(function(e)
   local player = game.get_player(e.player_index)
   local player_table = global.players[e.player_index]
-  -- cancel deconstruction
+  -- reset flag
+  player_table.flags.recheck_on_move = false
+  -- cancel active deconstruction
   if player_table.flags.deconstructing then
     deconstruction.cancel(player, player_table)
   end
-  -- check setting
-  if player_table.flags.mouseover_enabled then
-    local cursor_stack = player.cursor_stack
-    -- if the cursor stack exists, but is empty
-    if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
-      -- if the player has something selected
-      local selected = player.selected
-      if selected then
-        -- if the player is able to build / upgrade / deconstruct
-        local settings = player_table.settings
-        -- revive ghosts
-        if settings.enable_construction and selected.type == "entity-ghost" then
-          mouseover.construct(player, selected)
-        -- upgrade to-be-upgraded from inventory
-        elseif settings.enable_upgrading and selected.to_be_upgraded() then
-          local upgrade = selected.get_upgrade_target()
-          if upgrade then
-            mouseover.upgrade(player, selected, upgrade)
-          end
-        -- deconstruct to-be-deconstructed entities
-        elseif settings.enable_deconstruction and selected.to_be_deconstructed() then
-          -- start deconstruction operation
-          deconstruction.start(player, player_table, selected)
-          on_tick.register()
-        end
-      end
-    end
-  end
+  check_selected(player, player_table)
 end)
 
 -- PLAYER
@@ -101,6 +127,14 @@ end)
 
 event.on_player_removed(function(e)
   global.players[e.player_index] = nil
+end)
+
+event.on_player_changed_position(function(e)
+  local player_table = global.players[e.player_index]
+  if player_table.flags.recheck_on_move then
+    local player = game.get_player(e.player_index)
+    check_selected(player, player_table)
+  end
 end)
 
 -- SHORTCUT
