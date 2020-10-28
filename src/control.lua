@@ -131,7 +131,7 @@ end)
 
 event.on_player_changed_position(function(e)
   local player_table = global.players[e.player_index]
-  if player_table.flags.recheck_on_move then
+  if player_table and player_table.flags.recheck_on_move then
     local player = game.get_player(e.player_index)
     check_selected(player, player_table)
   end
