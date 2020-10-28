@@ -43,10 +43,20 @@ event.on_selected_entity_changed(function(e)
   if player_table.flags.mouseover_enabled then
     local player = game.get_player(e.player_index)
     local cursor_stack = player.cursor_stack
+    -- if the cursor stack exists, but is empty
     if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
       local selected = player.selected
-      if selected and selected.type == "entity-ghost" then
-        mouseover.construct(player, selected)
+      if selected then
+        -- revive ghosts
+        if selected.type == "entity-ghost" then
+          mouseover.construct(player, selected)
+        -- upgrade to-be-upgraded from inventory
+        elseif selected.to_be_upgraded() then
+          local upgrade = selected.get_upgrade_target()
+          if upgrade then
+            mouseover.upgrade(player, selected, upgrade)
+          end
+        end
       end
     end
   end
