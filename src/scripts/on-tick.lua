@@ -4,9 +4,9 @@ local deconstruction = require("scripts.deconstruction")
 
 local on_tick = {}
 
-local function on_tick_handler(e)
+local function on_tick_handler()
   if next(global.deconstructing_players) then
-    deconstruction.iterate(e)
+    deconstruction.iterate()
   else
     event.on_tick(nil)
   end

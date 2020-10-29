@@ -5,12 +5,20 @@ local constants = require("constants")
 
 local deconstruction = require("scripts.deconstruction")
 local global_data = require("scripts.global-data")
-local mouseover = require("scripts.mouseover")
 local on_tick = require("scripts.on-tick")
 local player_data = require("scripts.player-data")
 
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
+
+local function get_first_item(inventory, entity_prototype)
+  for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
+    local count = inventory.get_item_count(item_stack.name)
+    if count >= item_stack.count then
+      return item_stack
+    end
+  end
+end
 
 local function check_selected(player, player_table)
   -- check setting
@@ -34,16 +42,39 @@ local function check_selected(player, player_table)
                 direction = selected.direction
               }
             then
-              mouseover.construct(player, selected)
+              local inventory = player.get_main_inventory()
+              local use_item = get_first_item(inventory, game.entity_prototypes[selected.ghost_name])
+              if use_item then
+                inventory.remove(use_item)
+                selected.revive{raise_revive = true}
+              end
             else
               -- recheck when the player moves
               player_table.flags.recheck_on_move = true
             end
           -- upgrade to-be-upgraded from inventory
           elseif settings.enable_upgrading and selected.to_be_upgraded() then
-            local upgrade = selected.get_upgrade_target()
-            if upgrade then
-              mouseover.upgrade(player, selected, upgrade)
+            local upgrade_prototype = selected.get_upgrade_target()
+            if upgrade_prototype then
+              local inventory = player.get_main_inventory()
+              local use_item = get_first_item(inventory, upgrade_prototype)
+              if use_item then
+                local upgraded_entity = player.surface.create_entity{
+                  name = upgrade_prototype.name,
+                  position = selected.position,
+                  direction = selected.direction,
+                  force = selected.force,
+                  player = player,
+                  fast_replace = true,
+                  raise_built = true
+                }
+                if upgraded_entity then
+                  player.play_sound{
+                    path = "entity-build/"..upgraded_entity.name,
+                    position = upgraded_entity.position
+                  }
+                end
+              end
             end
           -- deconstruct to-be-deconstructed entities
           elseif settings.enable_deconstruction and selected.to_be_deconstructed() then
