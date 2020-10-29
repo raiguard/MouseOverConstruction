@@ -2,6 +2,8 @@
 
 Mouse-over Construction is a Factorio mod easing the process of building blueprints before construction bots have been researched.
 
+[Download on the Mod Portal.](https://mods.factorio.com/mod/MouseOverConstruction)
+
 ## Features
 
 When mouse-over construction is enabled via the shortcut button or hotkey (default `Shift + Y`), the following features are available for entities within your reach range:
