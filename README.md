@@ -4,7 +4,7 @@ Mouse-over Construction is a Factorio mod easing the process of building bluepri
 
 ## Features
 
-When mouse-over is enabled via the shortcut button or hotkey (default `Shift + Y`), the following features are available for entities within your reach range:
+When mouse-over construction is enabled via the shortcut button or hotkey (default `Shift + Y`), the following features are available for entities within your reach range:
 
 ### Construction
 
