@@ -5,6 +5,7 @@ local constants = require("constants")
 
 local deconstruction = require("scripts.deconstruction")
 local global_data = require("scripts.global-data")
+local migrations = require("scripts.migrations")
 local on_tick = require("scripts.on-tick")
 local player_data = require("scripts.player-data")
 
@@ -114,7 +115,7 @@ event.on_load(function()
 end)
 
 event.on_configuration_changed(function(e)
-  if migration.on_config_changed(e, {}) then
+  if migration.on_config_changed(e, migrations) then
     for i, player_table in pairs(global.players) do
       player_data.update_settings(game.get_player(i), player_table)
     end
