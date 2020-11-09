@@ -20,6 +20,12 @@ Entities within range that are marked for upgrade will be automatically upgraded
 
 ![](resources/upgrading.gif)
 
+### Repairing
+
+Entities within range that have less than full health will be automatically repaired if you are holding a repair pack.
+
+![](resources/repairing.gif)
+
 ### Deconstruction
 
 Entities within range that are marked for deconstruction will be automatically mined.
