@@ -8,6 +8,7 @@ local global_data = require("scripts.global-data")
 local migrations = require("scripts.migrations")
 local on_tick = require("scripts.on-tick")
 local player_data = require("scripts.player-data")
+local repair = require("scripts.repair")
 
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
@@ -26,15 +27,18 @@ local function check_selected(player, player_table)
   if player_table.flags.mouseover_enabled then
     local cursor_stack = player.cursor_stack
     -- if the cursor stack exists, but is empty
-    if cursor_stack and cursor_stack.valid and not cursor_stack.valid_for_read then
+    if cursor_stack and cursor_stack.valid then
       -- if the player has something selected
       local selected = player.selected
       if selected then
         -- check reachability
         if player.can_reach_entity(selected) then
           local settings = player_table.settings
+          local is_empty = not cursor_stack.valid_for_read
+          local is_repair_tool = not is_empty and cursor_stack.type == "repair-tool"
+
           -- revive ghosts
-          if settings.enable_construction and selected.type == "entity-ghost" then
+          if settings.enable_construction and selected.type == "entity-ghost" and (is_empty or is_repair_tool) then
             -- extra checks
             if
               player.can_place_entity{
@@ -53,8 +57,17 @@ local function check_selected(player, player_table)
               -- recheck when the player moves
               player_table.flags.recheck_on_move = true
             end
+          -- check for repair pack and low entity health
+          elseif
+            settings.enable_repairing
+            and is_repair_tool
+            and selected.health
+            and selected.health < selected.prototype.max_health
+          then
+            repair.start(player, player_table, selected)
+            on_tick.register()
           -- upgrade to-be-upgraded from inventory
-          elseif settings.enable_upgrading and selected.to_be_upgraded() then
+          elseif settings.enable_upgrading and selected.to_be_upgraded() and (is_empty or is_repair_tool) then
             local upgrade_prototype = selected.get_upgrade_target()
             if upgrade_prototype then
               local inventory = player.get_main_inventory()
@@ -78,7 +91,7 @@ local function check_selected(player, player_table)
               end
             end
           -- deconstruct to-be-deconstructed entities
-          elseif settings.enable_deconstruction and selected.to_be_deconstructed() then
+          elseif settings.enable_deconstruction and selected.to_be_deconstructed() and (is_empty or is_repair_tool) then
             -- start deconstruction operation
             deconstruction.start(player, player_table, selected)
             on_tick.register()
@@ -146,6 +159,10 @@ event.on_selected_entity_changed(function(e)
   -- cancel active deconstruction
   if player_table.flags.deconstructing then
     deconstruction.cancel(player, player_table)
+  end
+  -- cancel active repair
+  if player_table.flags.repair then
+    repair.cancel(player, player_table)
   end
   check_selected(player, player_table)
 end)

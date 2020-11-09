@@ -15,9 +15,16 @@ data:extend{
   },
   {
     type = "bool-setting",
-    name = "moc-enable-deconstruction",
+    name = "moc-enable-repairing",
     setting_type = "runtime-per-user",
     default_value = true,
     order = "c"
+  },
+  {
+    type = "bool-setting",
+    name = "moc-enable-deconstruction",
+    setting_type = "runtime-per-user",
+    default_value = true,
+    order = "d"
   }
 }

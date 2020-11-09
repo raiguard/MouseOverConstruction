@@ -7,7 +7,8 @@ function player_data.init(player_index)
     flags = {
       deconstructing = false,
       mouseover_enabled = false,
-      recheck_on_move = false
+      recheck_on_move = false,
+      repairing = false
     },
     settings = {}
   }

@@ -1,7 +1,10 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.1
+Version: 1.1.0
 Date: ????
+  Features:
+    - Added mouse-over repairing. Repairing will be done only if holding a repair tool.
   Changes:
+    - All mouse-over events now function when holding a repair tool in addition to when the cursor is empty.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: 2020-10-29
