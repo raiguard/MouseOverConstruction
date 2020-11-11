@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.1
 Date: ????
-  Changes:
+  Bugfixes:
+    - Fixed that changing the hovered entity while mouse-over repairing would not cancel the repair
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.0
 Date: 2020-11-09

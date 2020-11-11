@@ -161,7 +161,7 @@ event.on_selected_entity_changed(function(e)
     deconstruction.cancel(player, player_table)
   end
   -- cancel active repair
-  if player_table.flags.repair then
+  if player_table.flags.repairing then
     repair.cancel(player, player_table)
   end
   check_selected(player, player_table)
