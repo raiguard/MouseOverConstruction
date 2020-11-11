@@ -8,7 +8,8 @@ local on_tick = {}
 local function on_tick_handler()
   local deregister = true
 
-  if next(global.repairing_players) then
+  -- it won't exist yet if going to 1.1.0 from 1.0.0
+  if next(global.repairing_players or {}) then
     deregister = false
     repair.iterate()
   end
