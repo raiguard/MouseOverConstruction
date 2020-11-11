@@ -24,7 +24,7 @@ local function on_tick_handler()
 end
 
 function on_tick.register()
-  if next(global.deconstructing_players) or next(global.repairing_players) then
+  if next(global.deconstructing_players) or next(global.repairing_players or {}) then
     event.on_tick(on_tick_handler)
   end
 end
