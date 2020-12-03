@@ -87,6 +87,7 @@ local function check_selected(player, player_table)
                     path = "entity-build/"..upgraded_entity.name,
                     position = upgraded_entity.position
                   }
+                  inventory.remove(use_item)
                 end
               end
             end
