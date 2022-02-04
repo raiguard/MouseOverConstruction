@@ -1,7 +1,7 @@
-data:extend{
+data:extend({
   {
     type = "custom-input",
     name = "moc-toggle",
-    key_sequence = "SHIFT + Y"
-  }
-}
+    key_sequence = "SHIFT + Y",
+  },
+})

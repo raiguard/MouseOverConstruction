@@ -14,11 +14,11 @@ function repair.iterate()
     local player_table = global.players[player_index]
     local entity = player.selected
     if entity and entity.health < entity.prototype.max_health then
-      player.repair_state = {repairing = true, position = player_table.repairing_position}
+      player.repair_state = { repairing = true, position = player_table.repairing_position }
     else
       repair.cancel(player, player_table)
       -- call the on_selected_entity_changed event handler again in case it's marked for upgrade or deconstruction
-      event.get_handler(defines.events.on_selected_entity_changed){player_index = player_index}
+      event.get_handler(defines.events.on_selected_entity_changed)({ player_index = player_index })
     end
   end
 end

@@ -41,23 +41,23 @@ local function check_selected(player, player_table)
           if settings.enable_construction and selected.type == "entity-ghost" and (is_empty or is_repair_tool) then
             -- extra checks
             if
-              player.can_place_entity{
+              player.can_place_entity({
                 name = selected.ghost_name,
                 position = selected.position,
-                direction = selected.direction
-              }
+                direction = selected.direction,
+              })
             then
               local inventory = player.get_main_inventory()
               local use_item = get_first_item(inventory, game.entity_prototypes[selected.ghost_name])
               if use_item then
                 inventory.remove(use_item)
-                selected.revive{raise_revive = true}
+                selected.revive({ raise_revive = true })
               end
             else
               -- recheck when the player moves
               player_table.flags.recheck_on_move = true
             end
-          -- check for repair pack and low entity health
+            -- check for repair pack and low entity health
           elseif
             settings.enable_repairing
             and is_repair_tool
@@ -66,32 +66,32 @@ local function check_selected(player, player_table)
           then
             repair.start(player, player_table, selected)
             on_tick.register()
-          -- upgrade to-be-upgraded from inventory
+            -- upgrade to-be-upgraded from inventory
           elseif settings.enable_upgrading and selected.to_be_upgraded() and (is_empty or is_repair_tool) then
             local upgrade_prototype = selected.get_upgrade_target()
             if upgrade_prototype then
               local inventory = player.get_main_inventory()
               local use_item = get_first_item(inventory, upgrade_prototype)
               if use_item then
-                local upgraded_entity = player.surface.create_entity{
+                local upgraded_entity = player.surface.create_entity({
                   name = upgrade_prototype.name,
                   position = selected.position,
                   direction = selected.direction,
                   force = selected.force,
                   player = player,
                   fast_replace = true,
-                  raise_built = true
-                }
+                  raise_built = true,
+                })
                 if upgraded_entity then
-                  player.play_sound{
-                    path = "entity-build/"..upgraded_entity.name,
-                    position = upgraded_entity.position
-                  }
+                  player.play_sound({
+                    path = "entity-build/" .. upgraded_entity.name,
+                    position = upgraded_entity.position,
+                  })
                   inventory.remove(use_item)
                 end
               end
             end
-          -- deconstruct to-be-deconstructed entities
+            -- deconstruct to-be-deconstructed entities
           elseif settings.enable_deconstruction and selected.to_be_deconstructed() and (is_empty or is_repair_tool) then
             -- start deconstruction operation
             deconstruction.start(player, player_table, selected)
@@ -142,10 +142,10 @@ event.register("moc-toggle", function(e)
   local player = game.get_player(e.player_index)
   local player_table = global.players[e.player_index]
   player_data.toggle_mouseover(player, player_table)
-  player.create_local_flying_text{
-    text = {"moc-message."..(player_table.flags.mouseover_enabled and "enabled" or "disabled").."-moc"},
-    create_at_cursor = true
-  }
+  player.create_local_flying_text({
+    text = { "moc-message." .. (player_table.flags.mouseover_enabled and "enabled" or "disabled") .. "-moc" },
+    create_at_cursor = true,
+  })
 end)
 
 -- ENTITY

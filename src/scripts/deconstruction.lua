@@ -10,7 +10,7 @@ function deconstruction.iterate()
   for player_index in pairs(global.deconstructing_players) do
     local player = game.get_player(player_index)
     local player_table = global.players[player_index]
-    player.mining_state = {mining = true, position = player_table.deconstructing_position}
+    player.mining_state = { mining = true, position = player_table.deconstructing_position }
   end
 end
 

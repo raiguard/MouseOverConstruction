@@ -8,9 +8,9 @@ function player_data.init(player_index)
       deconstructing = false,
       mouseover_enabled = false,
       recheck_on_move = false,
-      repairing = false
+      repairing = false,
     },
-    settings = {}
+    settings = {},
   }
 end
 

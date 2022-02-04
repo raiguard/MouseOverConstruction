@@ -1,30 +1,30 @@
-data:extend{
+data:extend({
   {
     type = "bool-setting",
     name = "moc-enable-construction",
     setting_type = "runtime-per-user",
     default_value = true,
-    order = "a"
+    order = "a",
   },
   {
     type = "bool-setting",
     name = "moc-enable-upgrading",
     setting_type = "runtime-per-user",
     default_value = true,
-    order = "b"
+    order = "b",
   },
   {
     type = "bool-setting",
     name = "moc-enable-repairing",
     setting_type = "runtime-per-user",
     default_value = true,
-    order = "c"
+    order = "c",
   },
   {
     type = "bool-setting",
     name = "moc-enable-deconstruction",
     setting_type = "runtime-per-user",
     default_value = true,
-    order = "d"
-  }
-}
+    order = "d",
+  },
+})
