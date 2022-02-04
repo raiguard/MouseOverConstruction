@@ -3,6 +3,8 @@ Version: 1.2.0
 Date: ????
   Features:
     - Mouse-over construction, upgrading, and deconstruction will be limited to the held entity, if any
+  Bugfixes:
+    - Fixed that mouse-over construction would consume the item even if reviving the ghost failed
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.4
 Date: 2020-12-03

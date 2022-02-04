@@ -80,15 +80,20 @@ local function check_selected(player, player_table)
               if matches_selected then
                 local use_item = get_first_item_cursor(cursor_stack, selected.ghost_prototype)
                 if use_item then
-                  cursor_stack.count = cursor_stack.count - use_item.count
-                  selected.revive({ raise_revive = true })
+                  --- @type LuaEntity
+                  local _, revived = selected.revive({ raise_revive = true })
+                  if revived and revived.valid then
+                    cursor_stack.count = cursor_stack.count - use_item.count
+                  end
                 end
               else
                 local inventory = player.get_main_inventory()
                 local use_item = get_first_item(inventory, selected.ghost_prototype)
                 if use_item then
-                  inventory.remove(use_item)
-                  selected.revive({ raise_revive = true })
+                  local _, revived = selected.revive({ raise_revive = true })
+                  if revived and revived.valid then
+                    inventory.remove(use_item)
+                  end
                 end
               end
             else
