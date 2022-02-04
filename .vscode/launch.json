@@ -6,7 +6,7 @@
       "type": "factoriomod",
       "request": "launch",
       "name": "Debug",
-      "factorioPath": "${env:factorioTestbench1}",
+      "factorioPath": "/home/rai/dev/factorio/1/bin/x64/factorio",
       "hookMode": "debug",
       "hookControl": ["MouseOverConstruction", "Sandbox"],
       "factorioArgs": ["--load-scenario", "EditorExtensions/testing"]
@@ -15,7 +15,7 @@
       "type": "factoriomod",
       "request": "launch",
       "name": "Debug (data)",
-      "factorioPath": "${env:factorioTestbench1}",
+      "factorioPath": "/home/rai/dev/factorio/1/bin/x64/factorio",
       "hookMode": "debug",
       "hookControl": ["MouseOverConstruction", "Sandbox"],
       "hookData": true,
@@ -26,7 +26,7 @@
       "type": "factoriomod",
       "request": "launch",
       "name": "Profile",
-      "factorioPath": "${env:factorioTestbench1}",
+      "factorioPath": "/home/rai/dev/factorio/1/bin/x64/factorio",
       "hookMode": "profile",
       "hookControl": ["MouseOverConstruction", "Sandbox"]
     }
