@@ -13,23 +13,52 @@ local repair = require("scripts.repair")
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
 
---- @param inventory LuaInventory
+--- @param item_source LuaItemStack|LuaInventory
 --- @param entity_prototype LuaEntityPrototype
-local function get_first_item(inventory, entity_prototype)
+local function get_first_item(item_source, entity_prototype)
+  local is_inventory = item_source.object_name == "LuaInventory"
   for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
-    local count = inventory.get_item_count(item_stack.name)
+    local count
+    if is_inventory then
+      count = item_source.get_item_count(item_stack.name)
+    else
+      count = item_source.name == item_stack.name and item_source.count or nil
+    end
     if count >= item_stack.count then
       return item_stack
     end
   end
 end
 
---- @param cursor_stack LuaItemStack
---- @param entity_prototype LuaEntityPrototype
-local function get_first_item_cursor(cursor_stack, entity_prototype)
-  for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
-    if item_stack.name == cursor_stack.name and item_stack.count <= cursor_stack.count then
-      return item_stack
+--- @param item_source LuaItemStack|LuaInventory
+--- @param player LuaPlayer
+--- @param entity LuaEntity
+--- @param upgrade_prototype LuaEntityPrototype
+local function upgrade_entity(item_source, player, entity, upgrade_prototype)
+  local is_inventory = item_source.object_name == "LuaInventory"
+  local use_item = get_first_item(item_source, upgrade_prototype)
+  if use_item then
+    local upgraded_entity = player.surface.create_entity({
+      name = upgrade_prototype.name,
+      position = entity.position,
+      direction = entity.direction,
+      force = entity.force,
+      player = player,
+      fast_replace = true,
+      raise_built = true,
+      type = entity.type == "underground-belt" and entity.belt_to_ground_type or nil,
+    })
+    if upgraded_entity then
+      player.play_sound({
+        path = "entity-build/" .. upgraded_entity.name,
+        position = upgraded_entity.position,
+      })
+      if is_inventory then
+        item_source.remove(use_item)
+      else
+        item_source.count = item_source.count - use_item.count
+      end
+      return true
     end
   end
 end
@@ -78,7 +107,7 @@ local function check_selected(player, player_table)
               })
             then
               if matches_selected then
-                local use_item = get_first_item_cursor(cursor_stack, selected.ghost_prototype)
+                local use_item = get_first_item(cursor_stack, selected.ghost_prototype)
                 if use_item then
                   --- @type LuaEntity
                   local _, revived = selected.revive({ raise_revive = true })
@@ -90,6 +119,7 @@ local function check_selected(player, player_table)
                 local inventory = player.get_main_inventory()
                 local use_item = get_first_item(inventory, selected.ghost_prototype)
                 if use_item then
+                  --- @type LuaEntity
                   local _, revived = selected.revive({ raise_revive = true })
                   if revived and revived.valid then
                     inventory.remove(use_item)
@@ -117,47 +147,15 @@ local function check_selected(player, player_table)
           then
             local upgrade_prototype = selected.get_upgrade_target()
             if upgrade_prototype then
-              if matches_selected then
-                local use_item = get_first_item_cursor(cursor_stack, upgrade_prototype)
-                if use_item then
-                  local upgraded_entity = player.surface.create_entity({
-                    name = upgrade_prototype.name,
-                    position = selected.position,
-                    direction = selected.direction,
-                    force = selected.force,
-                    player = player,
-                    fast_replace = true,
-                    raise_built = true,
-                  })
-                  if upgraded_entity then
-                    player.play_sound({
-                      path = "entity-build/" .. upgraded_entity.name,
-                      position = upgraded_entity.position,
-                    })
-                    cursor_stack.count = cursor_stack.count - use_item.count
-                  end
-                end
-              else
-                local inventory = player.get_main_inventory()
-                local use_item = get_first_item(inventory, upgrade_prototype)
-                if use_item then
-                  local upgraded_entity = player.surface.create_entity({
-                    name = upgrade_prototype.name,
-                    position = selected.position,
-                    direction = selected.direction,
-                    force = selected.force,
-                    player = player,
-                    fast_replace = true,
-                    raise_built = true,
-                  })
-                  if upgraded_entity then
-                    player.play_sound({
-                      path = "entity-build/" .. upgraded_entity.name,
-                      position = upgraded_entity.position,
-                    })
-                    inventory.remove(use_item)
-                  end
-                end
+              local underground_neighbour = selected.type == "underground-belt" and selected.neighbours or nil
+              local item_source = matches_selected and cursor_stack or player.get_main_inventory()
+              if
+                upgrade_entity(item_source, player, selected, upgrade_prototype)
+                and underground_neighbour
+                and underground_neighbour.valid
+                and underground_neighbour.get_upgrade_target()
+              then
+                upgrade_entity(item_source, player, underground_neighbour, underground_neighbour.get_upgrade_target())
               end
             end
             -- deconstruct to-be-deconstructed entities

@@ -2,6 +2,7 @@
 Version: 1.2.0
 Date: ????
   Features:
+    - Both ends of underground belts will be upgraded when one end is moused over (#2)
     - Mouse-over construction, upgrading, and deconstruction will be limited to the held entity, if any
   Bugfixes:
     - Fixed that mouse-over construction would consume the item even if reviving the ghost failed
