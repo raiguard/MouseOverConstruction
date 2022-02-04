@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.0
-Date: ????
+Date: 2022-02-04
   Features:
     - Both ends of underground belts will be upgraded when one end is moused over (#2)
     - Mouse-over construction, upgrading, and deconstruction will be limited to the held entity, if any
