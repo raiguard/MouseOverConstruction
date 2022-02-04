@@ -13,6 +13,8 @@ local repair = require("scripts.repair")
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
 
+--- @param inventory LuaInventory
+--- @param entity_prototype LuaEntityPrototype
 local function get_first_item(inventory, entity_prototype)
   for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
     local count = inventory.get_item_count(item_stack.name)
@@ -22,6 +24,18 @@ local function get_first_item(inventory, entity_prototype)
   end
 end
 
+--- @param cursor_stack LuaItemStack
+--- @param entity_prototype LuaEntityPrototype
+local function get_first_item_cursor(cursor_stack, entity_prototype)
+  for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
+    if item_stack.name == cursor_stack.name and item_stack.count <= cursor_stack.count then
+      return item_stack
+    end
+  end
+end
+
+--- @param player LuaPlayer
+--- @param player_table PlayerTable
 local function check_selected(player, player_table)
   -- check setting
   if player_table.flags.mouseover_enabled then
@@ -37,8 +51,24 @@ local function check_selected(player, player_table)
           local is_empty = not cursor_stack.valid_for_read
           local is_repair_tool = not is_empty and cursor_stack.type == "repair-tool"
 
+          -- Check to see if the entity's name, ghost name, or upgrade name matches what we're holding
+          local upgrade_prototype = selected.get_upgrade_target()
+          local selected_name = selected.name
+          if upgrade_prototype then
+            selected_name = upgrade_prototype.name
+          elseif selected.type == "entity-ghost" then
+            selected_name = selected.ghost_name
+          end
+          local matches_selected = not is_empty
+            and cursor_stack.prototype.place_result
+            and cursor_stack.prototype.place_result.name == selected_name
+
           -- revive ghosts
-          if settings.enable_construction and selected.type == "entity-ghost" and (is_empty or is_repair_tool) then
+          if
+            settings.enable_construction
+            and selected.type == "entity-ghost"
+            and (matches_selected or is_empty or is_repair_tool)
+          then
             -- extra checks
             if
               player.can_place_entity({
@@ -47,11 +77,19 @@ local function check_selected(player, player_table)
                 direction = selected.direction,
               })
             then
-              local inventory = player.get_main_inventory()
-              local use_item = get_first_item(inventory, game.entity_prototypes[selected.ghost_name])
-              if use_item then
-                inventory.remove(use_item)
-                selected.revive({ raise_revive = true })
+              if matches_selected then
+                local use_item = get_first_item_cursor(cursor_stack, selected.ghost_prototype)
+                if use_item then
+                  cursor_stack.count = cursor_stack.count - use_item.count
+                  selected.revive({ raise_revive = true })
+                end
+              else
+                local inventory = player.get_main_inventory()
+                local use_item = get_first_item(inventory, selected.ghost_prototype)
+                if use_item then
+                  inventory.remove(use_item)
+                  selected.revive({ raise_revive = true })
+                end
               end
             else
               -- recheck when the player moves
@@ -67,32 +105,62 @@ local function check_selected(player, player_table)
             repair.start(player, player_table, selected)
             on_tick.register()
             -- upgrade to-be-upgraded from inventory
-          elseif settings.enable_upgrading and selected.to_be_upgraded() and (is_empty or is_repair_tool) then
+          elseif
+            settings.enable_upgrading
+            and selected.to_be_upgraded()
+            and (matches_selected or is_empty or is_repair_tool)
+          then
             local upgrade_prototype = selected.get_upgrade_target()
             if upgrade_prototype then
-              local inventory = player.get_main_inventory()
-              local use_item = get_first_item(inventory, upgrade_prototype)
-              if use_item then
-                local upgraded_entity = player.surface.create_entity({
-                  name = upgrade_prototype.name,
-                  position = selected.position,
-                  direction = selected.direction,
-                  force = selected.force,
-                  player = player,
-                  fast_replace = true,
-                  raise_built = true,
-                })
-                if upgraded_entity then
-                  player.play_sound({
-                    path = "entity-build/" .. upgraded_entity.name,
-                    position = upgraded_entity.position,
+              if matches_selected then
+                local use_item = get_first_item_cursor(cursor_stack, upgrade_prototype)
+                if use_item then
+                  local upgraded_entity = player.surface.create_entity({
+                    name = upgrade_prototype.name,
+                    position = selected.position,
+                    direction = selected.direction,
+                    force = selected.force,
+                    player = player,
+                    fast_replace = true,
+                    raise_built = true,
                   })
-                  inventory.remove(use_item)
+                  if upgraded_entity then
+                    player.play_sound({
+                      path = "entity-build/" .. upgraded_entity.name,
+                      position = upgraded_entity.position,
+                    })
+                    cursor_stack.count = cursor_stack.count - use_item.count
+                  end
+                end
+              else
+                local inventory = player.get_main_inventory()
+                local use_item = get_first_item(inventory, upgrade_prototype)
+                if use_item then
+                  local upgraded_entity = player.surface.create_entity({
+                    name = upgrade_prototype.name,
+                    position = selected.position,
+                    direction = selected.direction,
+                    force = selected.force,
+                    player = player,
+                    fast_replace = true,
+                    raise_built = true,
+                  })
+                  if upgraded_entity then
+                    player.play_sound({
+                      path = "entity-build/" .. upgraded_entity.name,
+                      position = upgraded_entity.position,
+                    })
+                    inventory.remove(use_item)
+                  end
                 end
               end
             end
             -- deconstruct to-be-deconstructed entities
-          elseif settings.enable_deconstruction and selected.to_be_deconstructed() and (is_empty or is_repair_tool) then
+          elseif
+            settings.enable_deconstruction
+            and selected.to_be_deconstructed()
+            and (matches_selected or is_empty or is_repair_tool)
+          then
             -- start deconstruction operation
             deconstruction.start(player, player_table, selected)
             on_tick.register()

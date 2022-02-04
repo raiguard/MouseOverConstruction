@@ -3,6 +3,7 @@ local constants = require("constants")
 local player_data = {}
 
 function player_data.init(player_index)
+  --- @class PlayerTable
   global.players[player_index] = {
     flags = {
       deconstructing = false,

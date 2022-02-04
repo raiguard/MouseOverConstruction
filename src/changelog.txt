@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.1.5
+Version: 1.2.0
 Date: ????
-  Changes:
+  Features:
+    - Mouse-over construction, upgrading, and deconstruction will be limited to the held entity, if any
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.4
 Date: 2020-12-03
