@@ -3,8 +3,8 @@
   "version": "1.2.1",
   "title": "Mouse-over Construction",
   "author": "raiguard",
-  "contact": "Discord: raiguard#7402",
-  "homepage": "https://github.com/raiguard/Factorio-MouseOverConstruction",
+  "contact": "https://lists.sr.ht/~raiguard/factorio-mods-discuss",
+  "homepage": "https://sr.ht/~raiguard/factorio-mods",
   "description": "Revive ghosts, upgrade, repair, and deconstruct with a simple mouse-over. Respects reach distance and mining speed. Similar to GhostPlacerExpress and MouseOverDeconstruct.",
   "factorio_version": "1.1",
   "dependencies": ["base >= 1.1.0", "flib >= 0.6.0"]
