@@ -136,6 +136,7 @@ local function check_selected(player, player_table)
             and is_repair_tool
             and selected.health
             and selected.health < selected.prototype.max_health
+            and not player.vehicle
           then
             repair.start(player, player_table, selected)
             on_tick.register()
