@@ -1,7 +1,6 @@
 local migration = require("__flib__/migration")
 
 local deconstruction = require("scripts/deconstruction")
-local global_data = require("scripts/global-data")
 local migrations = require("scripts/migrations")
 local player_data = require("scripts/player-data")
 local repair = require("scripts/repair")
@@ -176,7 +175,9 @@ end
 -- EVENT HANDLERS
 
 script.on_init(function()
-  global_data.init()
+  global.deconstructing_players = {}
+  global.players = {}
+  global.repairing_players = {}
 
   for i in pairs(game.players) do
     player_data.init(i)
