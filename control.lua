@@ -175,8 +175,6 @@ end
 -- -----------------------------------------------------------------------------
 -- EVENT HANDLERS
 
--- BOOTSTRAP
-
 script.on_init(function()
   global_data.init()
 
@@ -196,8 +194,6 @@ script.on_configuration_changed(function(e)
   end
 end)
 
--- CUSTOM INPUT
-
 script.on_event("moc-toggle", function(e)
   local player = game.get_player(e.player_index)
   if not player then
@@ -210,8 +206,6 @@ script.on_event("moc-toggle", function(e)
     create_at_cursor = true,
   })
 end)
-
--- ENTITY
 
 script.on_event(defines.events.on_selected_entity_changed, function(e)
   local player = game.get_player(e.player_index)
@@ -232,8 +226,6 @@ script.on_event(defines.events.on_selected_entity_changed, function(e)
   check_selected(player, player_table)
 end)
 
--- PLAYER
-
 script.on_event(defines.events.on_player_created, function(e)
   player_data.init(e.player_index)
   local player = game.get_player(e.player_index)
@@ -253,8 +245,6 @@ script.on_event(defines.events.on_player_changed_position, function(e)
   end
 end)
 
--- SHORTCUT
-
 script.on_event(defines.events.on_lua_shortcut, function(e)
   if e.prototype_name == "moc-toggle" then
     local player = game.get_player(e.player_index)
@@ -262,8 +252,6 @@ script.on_event(defines.events.on_lua_shortcut, function(e)
     player_data.toggle_mouseover(player, player_table)
   end
 end)
-
--- SETTINGS
 
 script.on_event(defines.events.on_tick, function()
   if next(global.repairing_players) then
