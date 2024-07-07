@@ -1,7 +1,5 @@
-local event = require("__flib__.event")
-
-local deconstruction = require("scripts.deconstruction")
-local repair = require("scripts.repair")
+local deconstruction = require("scripts/deconstruction")
+local repair = require("scripts/repair")
 
 local on_tick = {}
 
@@ -19,13 +17,13 @@ local function on_tick_handler()
   end
 
   if deregister then
-    event.on_tick(nil)
+    script.on_event(defines.events.on_tick, nil)
   end
 end
 
 function on_tick.register()
   if next(global.deconstructing_players) or next(global.repairing_players or {}) then
-    event.on_tick(on_tick_handler)
+    script.on_event(defines.events.on_tick, on_tick_handler)
   end
 end
 

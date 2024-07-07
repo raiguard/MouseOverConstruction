@@ -1,20 +1,19 @@
-local event = require("__flib__.event")
-local migration = require("__flib__.migration")
+local migration = require("__flib__/migration")
 
 local constants = require("constants")
 
-local deconstruction = require("scripts.deconstruction")
-local global_data = require("scripts.global-data")
-local migrations = require("scripts.migrations")
-local on_tick = require("scripts.on-tick")
-local player_data = require("scripts.player-data")
-local repair = require("scripts.repair")
+local deconstruction = require("scripts/deconstruction")
+local global_data = require("scripts/global-data")
+local migrations = require("scripts/migrations")
+local on_tick = require("scripts/on-tick")
+local player_data = require("scripts/player-data")
+local repair = require("scripts/repair")
 
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
 
 --- @param item_source LuaItemStack|LuaInventory
---- @param entity_prototype LuaEntityPrototype
+--- @param entity_prototype LuaEntityPrototype|LuaTilePrototype
 local function get_first_item(item_source, entity_prototype)
   local is_inventory = item_source.object_name == "LuaInventory"
   for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
@@ -109,7 +108,6 @@ local function check_selected(player, player_table)
               if matches_selected then
                 local use_item = get_first_item(cursor_stack, selected.ghost_prototype)
                 if use_item then
-                  --- @type LuaEntity
                   local _, revived = selected.revive({ raise_revive = true })
                   if revived and revived.valid then
                     cursor_stack.count = cursor_stack.count - use_item.count
@@ -117,12 +115,13 @@ local function check_selected(player, player_table)
                 end
               else
                 local inventory = player.get_main_inventory()
-                local use_item = get_first_item(inventory, selected.ghost_prototype)
-                if use_item then
-                  --- @type LuaEntity
-                  local _, revived = selected.revive({ raise_revive = true })
-                  if revived and revived.valid then
-                    inventory.remove(use_item)
+                if inventory then
+                  local use_item = get_first_item(inventory, selected.ghost_prototype)
+                  if use_item then
+                    local _, revived = selected.revive({ raise_revive = true })
+                    if revived and revived.valid then
+                      inventory.remove(use_item)
+                    end
                   end
                 end
               end
@@ -185,7 +184,7 @@ end
 
 -- BOOTSTRAP
 
-event.on_init(function()
+script.on_init(function()
   global_data.init()
 
   for i in pairs(game.players) do
@@ -196,11 +195,11 @@ event.on_init(function()
   end
 end)
 
-event.on_load(function()
+script.on_load(function()
   on_tick.register()
 end)
 
-event.on_configuration_changed(function(e)
+script.on_configuration_changed(function(e)
   if migration.on_config_changed(e, migrations) then
     for i, player_table in pairs(global.players) do
       player_data.update_settings(game.get_player(i), player_table)
@@ -210,8 +209,11 @@ end)
 
 -- CUSTOM INPUT
 
-event.register("moc-toggle", function(e)
+script.on_event("moc-toggle", function(e)
   local player = game.get_player(e.player_index)
+  if not player then
+    return
+  end
   local player_table = global.players[e.player_index]
   player_data.toggle_mouseover(player, player_table)
   player.create_local_flying_text({
@@ -222,8 +224,11 @@ end)
 
 -- ENTITY
 
-event.on_selected_entity_changed(function(e)
+script.on_event(defines.events.on_selected_entity_changed, function(e)
   local player = game.get_player(e.player_index)
+  if not player then
+    return
+  end
   local player_table = global.players[e.player_index]
   -- reset flag
   player_table.flags.recheck_on_move = false
@@ -240,18 +245,18 @@ end)
 
 -- PLAYER
 
-event.on_player_created(function(e)
+script.on_event(defines.events.on_player_created, function(e)
   player_data.init(e.player_index)
   local player = game.get_player(e.player_index)
   local player_table = global.players[e.player_index]
   player_data.update_settings(player, player_table)
 end)
 
-event.on_player_removed(function(e)
+script.on_event(defines.events.on_player_removed, function(e)
   global.players[e.player_index] = nil
 end)
 
-event.on_player_changed_position(function(e)
+script.on_event(defines.events.on_player_changed_position, function(e)
   local player_table = global.players[e.player_index]
   if player_table and player_table.flags.recheck_on_move then
     local player = game.get_player(e.player_index)
@@ -261,7 +266,7 @@ end)
 
 -- SHORTCUT
 
-event.on_lua_shortcut(function(e)
+script.on_event(defines.events.on_lua_shortcut, function(e)
   if e.prototype_name == "moc-toggle" then
     local player = game.get_player(e.player_index)
     local player_table = global.players[e.player_index]
@@ -271,7 +276,7 @@ end)
 
 -- SETTINGS
 
-event.on_runtime_mod_setting_changed(function(e)
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
   if constants.setting_names[e.setting] then
     local player = game.get_player(e.player_index)
     local player_table = global.players[e.player_index]

@@ -1,5 +1,3 @@
-local event = require("__flib__.event")
-
 local repair = {}
 
 function repair.start(player, player_table, entity)
@@ -18,7 +16,7 @@ function repair.iterate()
     else
       repair.cancel(player, player_table)
       -- call the on_selected_entity_changed event handler again in case it's marked for upgrade or deconstruction
-      event.get_handler(defines.events.on_selected_entity_changed)({ player_index = player_index })
+      script.get_event_handler(defines.events.on_selected_entity_changed)({ player_index = player_index })
     end
   end
 end
