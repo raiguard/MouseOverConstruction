@@ -1,23 +1,27 @@
+--- @class Deconstruction
 local deconstruction = {}
 
-function deconstruction.start(player, player_table, entity)
-  global.deconstructing_players[player.index] = true
-  player_table.flags.deconstructing = true
-  player_table.deconstructing_position = entity.position
+--- @param player LuaPlayer
+--- @param entity LuaEntity
+function deconstruction.start(player, entity)
+  global.deconstructing[player.index] = entity.position
 end
 
 function deconstruction.iterate()
-  for player_index in pairs(global.deconstructing_players) do
+  for player_index, position in pairs(global.deconstructing) do
     local player = game.get_player(player_index)
-    local player_table = global.players[player_index]
-    player.mining_state = { mining = true, position = player_table.deconstructing_position }
+    if not player then
+      deconstruction.cancel(player_index)
+      goto continue
+    end
+    player.mining_state = { mining = true, position = position }
+    ::continue::
   end
 end
 
-function deconstruction.cancel(player, player_table)
-  global.deconstructing_players[player.index] = nil
-  player_table.flags.deconstructing = false
-  player_table.deconstructing_position = nil
+--- @param player_index uint
+function deconstruction.cancel(player_index)
+  global.deconstructing[player_index] = nil
 end
 
 return deconstruction

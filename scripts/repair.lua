@@ -1,30 +1,35 @@
+--- @class Repair
 local repair = {}
 
-function repair.start(player, player_table, entity)
-  global.repairing_players[player.index] = true
-  player_table.flags.repairing = true
-  player_table.repairing_position = entity.position
+--- @param player LuaPlayer
+--- @param entity LuaEntity
+function repair.start(player, entity)
+  global.repairing[player.index] = entity.position
 end
 
 function repair.iterate()
-  for player_index in pairs(global.repairing_players) do
+  for player_index, position in pairs(global.repairing) do
     local player = game.get_player(player_index)
-    local player_table = global.players[player_index]
+    if not player then
+      repair.cancel(player_index)
+      goto continue
+    end
     local entity = player.selected
     if entity and entity.health < entity.prototype.max_health then
-      player.repair_state = { repairing = true, position = player_table.repairing_position }
+      player.repair_state = { repairing = true, position = position }
     else
-      repair.cancel(player, player_table)
-      -- call the on_selected_entity_changed event handler again in case it's marked for upgrade or deconstruction
-      script.get_event_handler(defines.events.on_selected_entity_changed)({ player_index = player_index })
+      repair.cancel(player_index)
+      -- TODO:
+      -- -- call the on_selected_entity_changed event handler again in case it's marked for upgrade or deconstruction
+      -- script.get_event_handler(defines.events.on_selected_entity_changed)({ player_index = player_index })
     end
+    ::continue::
   end
 end
 
-function repair.cancel(player, player_table)
-  global.repairing_players[player.index] = nil
-  player_table.flags.repairing = false
-  player_table.repairing_position = nil
+--- @param player_index uint
+function repair.cancel(player_index)
+  global.repairing[player_index] = nil
 end
 
 return repair
