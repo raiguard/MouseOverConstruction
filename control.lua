@@ -5,7 +5,6 @@ local constants = require("constants")
 local deconstruction = require("scripts/deconstruction")
 local global_data = require("scripts/global-data")
 local migrations = require("scripts/migrations")
-local on_tick = require("scripts/on-tick")
 local player_data = require("scripts/player-data")
 local repair = require("scripts/repair")
 
@@ -138,7 +137,6 @@ local function check_selected(player, player_table)
             and not player.vehicle
           then
             repair.start(player, player_table, selected)
-            on_tick.register()
             -- upgrade to-be-upgraded from inventory
           elseif
             settings.enable_upgrading
@@ -166,7 +164,6 @@ local function check_selected(player, player_table)
           then
             -- start deconstruction operation
             deconstruction.start(player, player_table, selected)
-            on_tick.register()
           end
         else
           -- recheck when the player moves
@@ -179,8 +176,6 @@ end
 
 -- -----------------------------------------------------------------------------
 -- EVENT HANDLERS
--- `on_tick` handler is located and registered in `scripts.on-tick`
--- all other event handlers are here
 
 -- BOOTSTRAP
 
@@ -193,10 +188,6 @@ script.on_init(function()
     local player_table = global.players[i]
     player_data.update_settings(player, player_table)
   end
-end)
-
-script.on_load(function()
-  on_tick.register()
 end)
 
 script.on_configuration_changed(function(e)
@@ -281,5 +272,14 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
     local player = game.get_player(e.player_index)
     local player_table = global.players[e.player_index]
     player_data.update_settings(player, player_table)
+  end
+end)
+
+script.on_event(defines.events.on_tick, function()
+  if next(global.repairing_players) then
+    repair.iterate()
+  end
+  if next(global.deconstructing_players) then
+    deconstruction.iterate()
   end
 end)
