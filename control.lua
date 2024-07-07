@@ -1,7 +1,5 @@
 local migration = require("__flib__/migration")
 
-local constants = require("constants")
-
 local deconstruction = require("scripts/deconstruction")
 local global_data = require("scripts/global-data")
 local migrations = require("scripts/migrations")
@@ -74,7 +72,7 @@ local function check_selected(player, player_table)
       if selected then
         -- check reachability
         if player.can_reach_entity(selected) then
-          local settings = player_table.settings
+          local settings = player.mod_settings
           local is_empty = not cursor_stack.valid_for_read
           local is_repair_tool = not is_empty and cursor_stack.type == "repair-tool"
 
@@ -92,7 +90,7 @@ local function check_selected(player, player_table)
 
           -- revive ghosts
           if
-            settings.enable_construction
+            settings["moc-enable-construction"].value
             and selected.type == "entity-ghost"
             and (matches_selected or is_empty or is_repair_tool)
           then
@@ -130,7 +128,7 @@ local function check_selected(player, player_table)
             end
             -- check for repair pack and low entity health
           elseif
-            settings.enable_repairing
+            settings["moc-enable-repairing"]
             and is_repair_tool
             and selected.health
             and selected.health < selected.prototype.max_health
@@ -139,7 +137,7 @@ local function check_selected(player, player_table)
             repair.start(player, player_table, selected)
             -- upgrade to-be-upgraded from inventory
           elseif
-            settings.enable_upgrading
+            settings["moc-enable-upgrading"]
             and selected.to_be_upgraded()
             and (matches_selected or is_empty or is_repair_tool)
           then
@@ -158,7 +156,7 @@ local function check_selected(player, player_table)
             end
             -- deconstruct to-be-deconstructed entities
           elseif
-            settings.enable_deconstruction
+            settings["moc-enable-deconstruction"]
             and selected.to_be_deconstructed()
             and (matches_selected or is_empty or is_repair_tool)
           then
@@ -266,14 +264,6 @@ script.on_event(defines.events.on_lua_shortcut, function(e)
 end)
 
 -- SETTINGS
-
-script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
-  if constants.setting_names[e.setting] then
-    local player = game.get_player(e.player_index)
-    local player_table = global.players[e.player_index]
-    player_data.update_settings(player, player_table)
-  end
-end)
 
 script.on_event(defines.events.on_tick, function()
   if next(global.repairing_players) then
