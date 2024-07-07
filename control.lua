@@ -5,6 +5,10 @@ local migrations = require("scripts/migrations")
 local player_data = require("scripts/player-data")
 local repair = require("scripts/repair")
 
+local handler = require("__core__/lualib/event_handler")
+
+handler.add_lib(require("scripts.shortcut"))
+
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
 
@@ -174,7 +178,9 @@ end
 -- -----------------------------------------------------------------------------
 -- EVENT HANDLERS
 
-script.on_init(function()
+local M = {}
+
+function M.on_init()
   global.deconstructing_players = {}
   global.players = {}
   global.repairing_players = {}
@@ -185,80 +191,61 @@ script.on_init(function()
     local player_table = global.players[i]
     player_data.update_settings(player, player_table)
   end
-end)
+end
 
-script.on_configuration_changed(function(e)
+--- @param e ConfigurationChangedData
+function M.on_configuration_changed(e)
   if migration.on_config_changed(e, migrations) then
     for i, player_table in pairs(global.players) do
       player_data.update_settings(game.get_player(i), player_table)
     end
   end
-end)
+end
 
-script.on_event("moc-toggle", function(e)
-  local player = game.get_player(e.player_index)
-  if not player then
-    return
-  end
-  local player_table = global.players[e.player_index]
-  player_data.toggle_mouseover(player, player_table)
-  player.create_local_flying_text({
-    text = { "moc-message." .. (player_table.flags.mouseover_enabled and "enabled" or "disabled") .. "-moc" },
-    create_at_cursor = true,
-  })
-end)
-
-script.on_event(defines.events.on_selected_entity_changed, function(e)
-  local player = game.get_player(e.player_index)
-  if not player then
-    return
-  end
-  local player_table = global.players[e.player_index]
-  -- reset flag
-  player_table.flags.recheck_on_move = false
-  -- cancel active deconstruction
-  if player_table.flags.deconstructing then
-    deconstruction.cancel(player, player_table)
-  end
-  -- cancel active repair
-  if player_table.flags.repairing then
-    repair.cancel(player, player_table)
-  end
-  check_selected(player, player_table)
-end)
-
-script.on_event(defines.events.on_player_created, function(e)
-  player_data.init(e.player_index)
-  local player = game.get_player(e.player_index)
-  local player_table = global.players[e.player_index]
-  player_data.update_settings(player, player_table)
-end)
-
-script.on_event(defines.events.on_player_removed, function(e)
-  global.players[e.player_index] = nil
-end)
-
-script.on_event(defines.events.on_player_changed_position, function(e)
-  local player_table = global.players[e.player_index]
-  if player_table and player_table.flags.recheck_on_move then
+M.events = {
+  [defines.events.on_selected_entity_changed] = function(e)
     local player = game.get_player(e.player_index)
-    check_selected(player, player_table)
-  end
-end)
-
-script.on_event(defines.events.on_lua_shortcut, function(e)
-  if e.prototype_name == "moc-toggle" then
-    local player = game.get_player(e.player_index)
+    if not player then
+      return
+    end
     local player_table = global.players[e.player_index]
-    player_data.toggle_mouseover(player, player_table)
-  end
-end)
+    -- reset flag
+    player_table.flags.recheck_on_move = false
+    -- cancel active deconstruction
+    if player_table.flags.deconstructing then
+      deconstruction.cancel(player, player_table)
+    end
+    -- cancel active repair
+    if player_table.flags.repairing then
+      repair.cancel(player, player_table)
+    end
+    check_selected(player, player_table)
+  end,
 
-script.on_event(defines.events.on_tick, function()
-  if next(global.repairing_players) then
-    repair.iterate()
-  end
-  if next(global.deconstructing_players) then
-    deconstruction.iterate()
-  end
-end)
+  [defines.events.on_player_created] = function(e)
+    player_data.init(e.player_index)
+  end,
+
+  [defines.events.on_player_removed] = function(e)
+    global.players[e.player_index] = nil
+  end,
+
+  [defines.events.on_player_changed_position] = function(e)
+    local player_table = global.players[e.player_index]
+    if player_table and player_table.flags.recheck_on_move then
+      local player = game.get_player(e.player_index)
+      check_selected(player, player_table)
+    end
+  end,
+
+  [defines.events.on_tick] = function()
+    if next(global.repairing_players) then
+      repair.iterate()
+    end
+    if next(global.deconstructing_players) then
+      deconstruction.iterate()
+    end
+  end,
+}
+
+handler.add_lib(M)
