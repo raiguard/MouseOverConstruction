@@ -1,11 +1,11 @@
-local migration = require("__flib__/migration")
+local migration = require("__flib__.migration")
 
-local deconstruction = require("scripts/deconstruction")
-local migrations = require("scripts/migrations")
-local player_data = require("scripts/player-data")
-local repair = require("scripts/repair")
+local deconstruction = require("scripts.deconstruction")
+local migrations = require("scripts.migrations")
+local player_data = require("scripts.player-data")
+local repair = require("scripts.repair")
 
-local handler = require("__core__/lualib/event_handler")
+local handler = require("__core__.lualib.event_handler")
 
 handler.add_lib(require("scripts.shortcut"))
 
