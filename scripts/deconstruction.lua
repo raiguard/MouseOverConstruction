@@ -4,11 +4,11 @@ local deconstruction = {}
 --- @param player LuaPlayer
 --- @param entity LuaEntity
 function deconstruction.start(player, entity)
-  global.deconstructing[player.index] = entity.position
+  storage.deconstructing[player.index] = entity.position
 end
 
 function deconstruction.iterate()
-  for player_index, position in pairs(global.deconstructing) do
+  for player_index, position in pairs(storage.deconstructing) do
     local player = game.get_player(player_index)
     if not player then
       deconstruction.cancel(player_index)
@@ -21,7 +21,7 @@ end
 
 --- @param player_index uint
 function deconstruction.cancel(player_index)
-  global.deconstructing[player_index] = nil
+  storage.deconstructing[player_index] = nil
 end
 
 return deconstruction

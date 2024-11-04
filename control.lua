@@ -65,7 +65,7 @@ end
 
 --- @param player LuaPlayer
 local function check_selected(player)
-  if not global.mouseover_active[player.index] then
+  if not storage.mouseover_active[player.index] then
     return
   end
 
@@ -80,7 +80,7 @@ local function check_selected(player)
   end
 
   if not player.can_reach_entity(selected) then
-    global.recheck_on_move[player.index] = true
+    storage.recheck_on_move[player.index] = true
     return
   end
 
@@ -132,7 +132,7 @@ local function check_selected(player)
         end
       end
     else
-      global.recheck_on_move[player.index] = true
+      storage.recheck_on_move[player.index] = true
     end
 
     return
@@ -142,7 +142,7 @@ local function check_selected(player)
     settings["moc-enable-repairing"].value
     and is_repair_tool
     and selected.health
-    and selected.health < selected.prototype.max_health
+    and selected.health < selected.max_health
     and not player.vehicle
   then
     repair.start(player, selected)
@@ -191,11 +191,11 @@ local M = {}
 
 function M.on_init()
   --- @type table<uint, MapPosition>
-  global.deconstructing = {}
+  storage.deconstructing = {}
   --- @type table<uint, MapPosition>
-  global.repairing = {}
+  storage.repairing = {}
   --- @type table<uint, boolean>
-  global.recheck_on_move = {}
+  storage.recheck_on_move = {}
 end
 
 --- @param e ConfigurationChangedData
@@ -203,18 +203,18 @@ function M.on_configuration_changed(e)
   flib_migration.on_config_changed(e, {
     ["2.0.0"] = function()
       -- Nuke everything
-      global = {}
+      storage = {}
     end,
   })
 end
 
 M.events = {
   [defines.events.on_selected_entity_changed] = function(e)
-    global.recheck_on_move[e.player_index] = nil
-    if global.deconstructing[e.player_index] then
+    storage.recheck_on_move[e.player_index] = nil
+    if storage.deconstructing[e.player_index] then
       deconstruction.cancel(e.player_index)
     end
-    if global.repairing[e.player_index] then
+    if storage.repairing[e.player_index] then
       repair.cancel(e.player_index)
     end
     local player = game.get_player(e.player_index)
@@ -225,14 +225,14 @@ M.events = {
   end,
 
   [defines.events.on_player_removed] = function(e)
-    global.players[e.player_index] = nil
+    storage.players[e.player_index] = nil
   end,
 
   [defines.events.on_player_changed_position] = function(e)
-    if not global.recheck_on_move[e.player_index] then
+    if not storage.recheck_on_move[e.player_index] then
       return
     end
-    global.recheck_on_move[e.player_index] = nil
+    storage.recheck_on_move[e.player_index] = nil
 
     local player = game.get_player(e.player_index)
     if not player then
@@ -243,10 +243,10 @@ M.events = {
   end,
 
   [defines.events.on_tick] = function()
-    if next(global.repairing) then
+    if next(storage.repairing) then
       repair.iterate()
     end
-    if next(global.deconstructing) then
+    if next(storage.deconstructing) then
       deconstruction.iterate()
     end
   end,

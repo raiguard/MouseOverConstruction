@@ -8,8 +8,8 @@ local function toggle_mouseover(e)
   if not player then
     return
   end
-  local new_value = not global.mouseover_active[e.player_index]
-  global.mouseover_active[e.player_index] = new_value
+  local new_value = not storage.mouseover_active[e.player_index]
+  storage.mouseover_active[e.player_index] = new_value
   player.set_shortcut_toggled("moc-toggle", new_value)
   if e.input_name then
     player.create_local_flying_text({
@@ -23,7 +23,7 @@ local M = {}
 
 function M.on_init()
   --- @type table<uint, boolean>
-  global.mouseover_active = {}
+  storage.mouseover_active = {}
 end
 
 M.on_configuration_changed = M.on_init
