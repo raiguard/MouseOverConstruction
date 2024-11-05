@@ -10,16 +10,35 @@ handler.add_lib(require("scripts.shortcut"))
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
 
+local function shallow_clone(t)
+  local new_t = {}
+  for k, v in pairs(t) do
+    new_t[k] = v
+  end
+  return new_t
+end
+
 --- @param item_source LuaItemStack|LuaInventory
 --- @param entity_prototype LuaEntityPrototype|LuaTilePrototype
-local function get_first_item(item_source, entity_prototype)
+--- @param entity_quality LuaQualityPrototype?
+--- @returns ItemStackDefinition
+local function get_first_item(item_source, entity_prototype, entity_quality)
   local is_inventory = item_source.object_name == "LuaInventory"
   for _, item_stack in ipairs(entity_prototype.items_to_place_this) do
+    -- Need to tweak quality, so item_stack is cloned
+    item_stack = shallow_clone(item_stack)
+    -- Prefer item_stack's own quality, just in case?
+    item_stack.quality = item_stack.quality or (entity_quality and entity_quality.name) or nil
+
     local count
     if is_inventory then
-      count = item_source.get_item_count(item_stack.name)
-    else
-      count = item_source.name == item_stack.name and item_source.count or nil
+      count = item_source.get_item_count(item_stack)
+    elseif item_source.name == item_stack.name
+      and (
+        item_source.quality and item_stack.quality
+        and item_source.quality.name == item_stack.quality or true
+      ) then
+      count = item_source.count or nil
     end
     if count >= item_stack.count then
       return item_stack
@@ -31,15 +50,17 @@ end
 --- @param player LuaPlayer
 --- @param entity LuaEntity
 --- @param upgrade_prototype LuaEntityPrototype?
-local function upgrade_entity(item_source, player, entity, upgrade_prototype)
+--- @param upgrade_quality LuaQualityPrototype?
+local function upgrade_entity(item_source, player, entity, upgrade_prototype, upgrade_quality)
   if not upgrade_prototype then
     return
   end
   local is_inventory = item_source.object_name == "LuaInventory"
-  local use_item = get_first_item(item_source, upgrade_prototype)
+  local use_item = get_first_item(item_source, upgrade_prototype, upgrade_quality)
   if use_item then
     local upgraded_entity = player.surface.create_entity({
       name = upgrade_prototype.name,
+      quality = upgrade_quality,
       position = entity.position,
       direction = entity.direction,
       force = entity.force,
@@ -88,16 +109,20 @@ local function check_selected(player)
   local is_empty = not cursor_stack.valid_for_read
   local is_repair_tool = not is_empty and cursor_stack.type == "repair-tool"
 
-  local upgrade_prototype = selected.get_upgrade_target()
+  local upgrade_prototype, upgrade_quality = selected.get_upgrade_target()
   local selected_name = selected.name
+  local selected_quality = selected.quality
   if upgrade_prototype then
     selected_name = upgrade_prototype.name
+    selected_quality = upgrade_quality.name
   elseif selected.type == "entity-ghost" then
     selected_name = selected.ghost_name
+    selected_quality = selected.quality.name
   end
   local matches_selected = not is_empty
     and cursor_stack.prototype.place_result
     and cursor_stack.prototype.place_result.name == selected_name
+    and cursor_stack.quality.name == selected_quality
 
   if
     settings["moc-enable-construction"].value
@@ -112,7 +137,7 @@ local function check_selected(player)
       })
     then
       if matches_selected then
-        local use_item = get_first_item(cursor_stack, selected.ghost_prototype)
+        local use_item = get_first_item(cursor_stack, selected.ghost_prototype, selected.quality)
         if use_item then
           local _, revived = selected.revive({ raise_revive = true })
           if revived and revived.valid then
@@ -122,7 +147,7 @@ local function check_selected(player)
       else
         local inventory = player.get_main_inventory()
         if inventory then
-          local use_item = get_first_item(inventory, selected.ghost_prototype)
+          local use_item = get_first_item(inventory, selected.ghost_prototype, selected.quality)
           if use_item then
             local _, revived = selected.revive({ raise_revive = true })
             if revived and revived.valid then
@@ -153,7 +178,7 @@ local function check_selected(player)
     and selected.to_be_upgraded()
     and (matches_selected or is_empty or is_repair_tool)
   then
-    local upgrade_prototype = selected.get_upgrade_target()
+    local upgrade_prototype, upgrade_quality = selected.get_upgrade_target()
     if upgrade_prototype then
       local underground_neighbour = selected.type == "underground-belt" and selected.neighbours or nil --[[@as LuaEntity?]]
       local main_inventory = player.get_main_inventory()
@@ -162,12 +187,13 @@ local function check_selected(player)
       end
       local item_source = matches_selected and cursor_stack or main_inventory
       if
-        upgrade_entity(item_source, player, selected, upgrade_prototype)
+        upgrade_entity(item_source, player, selected, upgrade_prototype, upgrade_quality)
         and underground_neighbour
         and underground_neighbour.valid
         and underground_neighbour.get_upgrade_target()
       then
-        upgrade_entity(item_source, player, underground_neighbour, underground_neighbour.get_upgrade_target())
+        local neighbor_upg_proto, neighbor_upg_quality = underground_neighbour.get_upgrade_target()
+        upgrade_entity(item_source, player, underground_neighbour, neighbor_upg_proto, neighbor_upg_quality)
       end
     end
 
