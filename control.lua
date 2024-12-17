@@ -168,9 +168,12 @@ local function check_selected(player)
         upgrade_entity(item_source, player, selected, upgrade_prototype, upgrade_quality)
         and underground_neighbour
         and underground_neighbour.valid
-        and underground_neighbour.get_upgrade_target()
       then
-        upgrade_entity(item_source, player, underground_neighbour, underground_neighbour.get_upgrade_target())
+        local upgrade_target, upgrade_quality = underground_neighbour.get_upgrade_target()
+        if upgrade_target then
+          --- @cast upgrade_quality -?
+          upgrade_entity(item_source, player, underground_neighbour, upgrade_target, upgrade_quality)
+        end
       end
     end
 
