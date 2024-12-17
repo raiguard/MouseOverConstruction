@@ -1,5 +1,3 @@
-local flib_migration = require("__flib__.migration")
-
 local deconstruction = require("scripts.deconstruction")
 local repair = require("scripts.repair")
 
@@ -201,16 +199,6 @@ function M.on_init()
   storage.repairing = {}
   --- @type table<uint, boolean>
   storage.recheck_on_move = {}
-end
-
---- @param e ConfigurationChangedData
-function M.on_configuration_changed(e)
-  flib_migration.on_config_changed(e, {
-    ["2.0.0"] = function()
-      -- Nuke everything
-      global = {}
-    end,
-  })
 end
 
 M.events = {
