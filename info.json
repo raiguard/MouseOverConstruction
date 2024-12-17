@@ -16,6 +16,7 @@
     "scripts": {
       "prepublish": "factorio-crowdin-sync"
     },
+    "ignore": ["resources/*"],
     "sync_portal_details": true
   }
 }
