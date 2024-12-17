@@ -8,9 +8,12 @@ handler.add_lib(require("scripts.shortcut"))
 -- -----------------------------------------------------------------------------
 -- COMMON FUNCTIONS
 
+-- FIXME: This needs to get an actual LuaItemStack instead of a definition in order to support complex items.
+
 --- @param item_source LuaItemStack|LuaInventory
 --- @param entity_prototype LuaEntityPrototype|LuaTilePrototype
 --- @param quality LuaQualityPrototype
+--- @return ItemStackDefinition?
 local function get_first_item(item_source, entity_prototype, quality)
   local is_inventory = item_source.object_name == "LuaInventory"
   for _, item_to_place in pairs(entity_prototype.items_to_place_this) do
