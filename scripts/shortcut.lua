@@ -24,6 +24,9 @@ local M = {}
 function M.on_init()
   --- @type table<uint, boolean>
   storage.mouseover_active = {}
+  for _, player in pairs(game.players) do
+    player.set_shortcut_toggled("moc-toggle", false)
+  end
 end
 
 M.on_configuration_changed = M.on_init
