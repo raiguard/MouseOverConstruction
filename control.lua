@@ -224,7 +224,9 @@ M.events = {
   end,
 
   [defines.events.on_player_removed] = function(e)
-    storage.players[e.player_index] = nil
+    if storage.players then
+      storage.players[e.player_index] = nil
+    end
   end,
 
   [defines.events.on_player_changed_position] = function(e)
